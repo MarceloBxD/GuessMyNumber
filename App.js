@@ -1,5 +1,5 @@
 import { StatusBar } from "expo-status-bar";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Modal, StyleSheet, Text, TextInput, View, Button } from "react-native";
 
 export default function App() {
@@ -13,13 +13,14 @@ export default function App() {
   function verifyUserGuess() {
     if (attempts === 0) {
       alert("Você não tem mais tentativas");
+      setModalIsVisible(true);
       return;
     }
 
-    if (userGuess == randomNumber) {
+    if (parseInt(userGuess) === randomNumber) {
       alert("Você acertou");
       setModalIsVisible(true);
-    } else if (userGuess > randomNumber) {
+    } else if (parseInt(userGuess) > randomNumber) {
       alert("Seu palpite é maior");
       setAttempts(attempts - 1);
     } else {
@@ -34,17 +35,17 @@ export default function App() {
 
   const inputs = [
     {
-      value: minMax[0],
-      onChangeText: (text) => setMinMax([text, minMax[1]]),
+      value: minMax[0].toString(),
+      onChangeText: (text) => setMinMax([text, parseInt(minMax[1])]),
       placeholder: "Mínimo",
     },
     {
-      value: minMax[1],
-      onChangeText: (text) => setMinMax([minMax[0], text]),
+      value: minMax[1].toString(),
+      onChangeText: (text) => setMinMax([parseInt(minMax[0]), text]),
       placeholder: "Máximo",
     },
     {
-      value: maxAttempts,
+      value: maxAttempts.toString(),
       onChangeText: (text) => setMaxAttempts(text),
       placeholder: "Tentativas",
     },
@@ -54,39 +55,44 @@ export default function App() {
     <View style={styles.container}>
       <StatusBar style="auto" />
       <Modal visible={modalIsVisible} animationType="slide">
-        {
-          <View style={styles.container}>
-            <Text>Escolha o intervalo</Text>
-            {inputs.map((input, index) => (
-              <TextInput key={index} {...input} />
-            ))}
-            <Button
-              title="Jogar"
-              onPress={() => {
-                setModalIsVisible(false);
-                setRandomNumber(
-                  generateRandomNumber(parseInt(minMax[0]), parseInt(minMax[1]))
-                );
-                setAttempts(maxAttempts);
-              }}
+        <View style={styles.modalContainer}>
+          <Text style={styles.title}>Escolha o intervalo</Text>
+          {inputs.map((input, index) => (
+            <TextInput
+              key={index}
+              style={styles.input}
+              {...input}
+              keyboardType="numeric"
             />
-          </View>
-        }
+          ))}
+          <Button
+            title="Jogar"
+            onPress={() => {
+              setModalIsVisible(false);
+              setRandomNumber(generateRandomNumber(minMax[0], minMax[1]));
+              setAttempts(maxAttempts);
+            }}
+          />
+        </View>
       </Modal>
 
-      <View>
-        <TextInput
-          placeholder="Seu palpite"
-          onChangeText={(text) => setUserGuess(text)}
-        />
-        <Text>Tentativas restantes: {attempts}</Text>
-        <Button
-          title="Enviar"
-          onPress={() => {
-            verifyUserGuess();
-          }}
-        />
-      </View>
+      {!modalIsVisible && (
+        <View style={styles.gameContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Seu palpite"
+            onChangeText={(text) => setUserGuess(text)}
+            keyboardType="numeric"
+          />
+          <Text style={styles.attemptsText}>
+            Tentativas restantes: {attempts}
+          </Text>
+          <Text style={styles.answer}>
+            {attempts === 0 && `O número era ${randomNumber}`}
+          </Text>
+          <Button title="Enviar" onPress={() => verifyUserGuess()} />
+        </View>
+      )}
     </View>
   );
 }
@@ -97,5 +103,43 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     alignItems: "center",
     justifyContent: "center",
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: "#4A6FA5",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 20,
+  },
+  gameContainer: {
+    flex: 1,
+    backgroundColor: "#4A6FA5",
+    justifyContent: "center",
+    padding: 20,
+  },
+  title: {
+    fontSize: 24,
+    color: "#fff",
+    marginBottom: 20,
+  },
+  input: {
+    height: 40,
+    borderColor: "#fff",
+    borderWidth: 1,
+    borderRadius: 5,
+    backgroundColor: "#fff",
+    width: "80%",
+    marginBottom: 10,
+    paddingHorizontal: 10,
+  },
+  attemptsText: {
+    fontSize: 18,
+    color: "#fff",
+    marginVertical: 10,
+  },
+  answer: {
+    fontSize: 18,
+    color: "#fff",
+    marginVertical: 10,
   },
 });
